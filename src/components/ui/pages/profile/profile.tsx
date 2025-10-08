@@ -35,6 +35,7 @@ export const ProfileUI: FC<ProfileUIProps> = ({
             errorText={''}
             size={'default'}
             icon={'EditIcon'}
+            autoComplete='current-password'
           />
         </div>
         <div className='pb-6'>

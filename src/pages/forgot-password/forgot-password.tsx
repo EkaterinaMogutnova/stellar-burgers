@@ -7,19 +7,25 @@ import { ForgotPasswordUI } from '@ui-pages';
 export const ForgotPassword: FC = () => {
   const [email, setEmail] = useState('');
   const [error, setError] = useState<Error | null>(null);
+  const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
 
   const handleSubmit = (e: SyntheticEvent) => {
     e.preventDefault();
 
+    if (loading) return;
+
     setError(null);
+    setLoading(true);
+
     forgotPasswordApi({ email })
       .then(() => {
         localStorage.setItem('resetPassword', 'true');
         navigate('/reset-password', { replace: true });
       })
-      .catch((err) => setError(err));
+      .catch((err) => setError(err))
+      .finally(() => setLoading(false));
   };
 
   return (
