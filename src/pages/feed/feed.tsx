@@ -1,15 +1,29 @@
 import { Preloader } from '@ui';
 import { FeedUI } from '@ui-pages';
-import { TOrder } from '@utils-types';
-import { FC } from 'react';
+import { FC, useEffect } from 'react';
+import { useDispatch, useSelector } from '../../services/store';
+import {
+  getFeeds,
+  getFeedState
+} from '../../services/slices/feedSlice/feedSlice';
 
+// Компонент страницы ленты заказов
 export const Feed: FC = () => {
-  /** TODO: взять переменную из стора */
-  const orders: TOrder[] = [];
+  const dispatch = useDispatch();
 
-  if (!orders.length) {
+  // Получаем данные о заказах из Redux store
+  const { orders, loading } = useSelector(getFeedState);
+
+  // Эффект для загрузки заказов
+  useEffect(() => {
+    dispatch(getFeeds()); // Запускаем запрос на получение ленты заказов
+  }, [dispatch]); // Эффект срабатывает при изменении dispatch
+
+  // Показываем прелоадер если данные загружаются или заказов нет
+  if (loading || !orders.length) {
     return <Preloader />;
   }
 
-  <FeedUI orders={orders} handleGetFeeds={() => {}} />;
+  // Рендерим UI компонент ленты заказов
+  return <FeedUI orders={orders} handleGetFeeds={() => dispatch(getFeeds())} />;
 };
