@@ -9,7 +9,7 @@ import {
   TLoginData,
   TRegisterData
 } from '@api';
-import { setCookie, deleteCookie } from '../../../utils/cookie'; // Исправленный путь
+import { setCookie, deleteCookie, getCookie } from '../../../utils/cookie'; // Добавьте getCookie
 
 // Тип состояния для пользователя
 type TUserState = {
@@ -55,8 +55,25 @@ export const registerUser = createAsyncThunk(
   }
 );
 
-// Получение данных пользователя
-export const getUser = createAsyncThunk('user/get', getUserApi);
+// Получение данных пользователя - ИСПРАВЛЕННАЯ ВЕРСИЯ
+export const getUser = createAsyncThunk(
+  'user/get',
+  async (_, { rejectWithValue }) => {
+    const accessToken = getCookie('accessToken'); // Проверяем наличие токена
+    const refreshToken = localStorage.getItem('refreshToken');
+
+    // Если нет токенов - не делаем запрос
+    if (!accessToken || !refreshToken) {
+      return rejectWithValue('No tokens');
+    }
+
+    try {
+      return await getUserApi();
+    } catch (error) {
+      return rejectWithValue(error);
+    }
+  }
+);
 
 // Обновление данных пользователя
 export const updateUser = createAsyncThunk(
@@ -135,7 +152,7 @@ export const userSlice = createSlice({
         state.isAuthenticated = true;
         state.user = action.payload.user;
       })
-      // Получение пользователя - ошибка
+      // Получение пользователя - ошибка (включая случай когда нет токенов)
       .addCase(getUser.rejected, (state) => {
         state.loading = false;
         state.isAuthenticated = false;
